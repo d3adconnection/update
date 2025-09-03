@@ -40,6 +40,7 @@ youtube.com##.ytp-videowall-still[data-is-mix="true"]
 youtube.com##ytd-compact-playlist-renderer:has([title^="YouTube"])
 
 ! home page suggestions
+youtube.com###statement-banner-content
 youtube.com##ytd-browse[page-subtype="home"] :is(ytd-rich-grid-row, #contents.ytd-rich-grid-row):style(display: contents !important)
 youtube.com##ytd-rich-item-renderer[rendered-from-rich-grid][is-in-first-column]:style(margin-left: calc(var(--ytd-rich-grid-item-margin)/2) !important)
 youtube.com##ytd-rich-grid-renderer>#contents:style(margin-left: calc(var(--ytd-rich-grid-gutter-margin)) !important)
