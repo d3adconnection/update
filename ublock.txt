@@ -33,7 +33,14 @@ youtube.com##ytd-popup-container > tp-yt-paper-dialog > ytd-mealbar-promo-render
 youtube.com##ytd-search ytd-item-section-renderer>#contents>:is(:not(ytd-video-renderer,ytd-channel-renderer,ytd-playlist-renderer,yt-lockup-view-model,yt-showing-results-for-renderer,[icon-name="promo-full-height:EMPTY_SEARCH"]),ytd-video-renderer:has([aria-label="Shorts"])),ytd-secondary-search-container-renderer
 
 ! remove shorts
-youtube.com##.ytd-reel-shelf-renderer.style-scope
+youtube.com##[is-shorts]
+youtube.com##ytd-search ytd-video-renderer:has([overlay-style="SHORTS"],[href^="/shorts/"])
+youtube.com##ytd-reel-shelf-renderer
+youtube.com##[tab-title="Shorts"]
+youtube.com##ytd-browse[page-subtype="subscriptions"] ytd-grid-video-renderer:has([overlay-style="SHORTS"],[href^="/shorts/"])
+youtube.com##ytd-browse[page-subtype="subscriptions"] ytd-video-renderer:has([overlay-style="SHORTS"],[href^="/shorts/"])
+youtube.com##ytd-browse[page-subtype="subscriptions"] ytd-rich-item-renderer:has([overlay-style="SHORTS"],[href^="/shorts/"])
+youtube.com###related :is(ytd-compact-video-renderer,yt-lockup-view-model):has([overlay-style="SHORTS"],[href^="/shorts/"])
 
 ! hide mixes/YT music stuff
 youtube.com##ytd-rich-item-renderer:has([href*="start_radio=1"])
