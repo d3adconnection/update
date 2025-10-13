@@ -1,0 +1,89 @@
+#!/usr/bin/env zsh
+set -euo pipefail
+setopt NO_NOMATCH
+
+# must be root
+if [ "$(id -u)" -ne 0 ]; then
+  echo "This script must be run as root."
+  exit 1
+fi
+
+# required commands
+for cmd in nmcli hostnamectl sed cp grep ip systemctl; do
+  command -v "$cmd" >/dev/null 2>&1 || { echo "Required command '$cmd' not found. Aborting."; exit 1; }
+done
+
+# verify expected interfaces exist
+for dev in eth0 eth1; do
+  if ! ip link show dev "$dev" >/dev/null 2>&1; then
+    echo "Network interface $dev not found. Aborting."
+    exit 1
+  fi
+done
+
+echo "Removing all saved NetworkManager connections..."
+# delete all connections known to NetworkManager
+CONNS=$(nmcli -t -f UUID connection show | sed '/^$/d' || true)
+if [ -n "$CONNS" ]; then
+  while IFS= read -r uuid; do
+    nmcli connection delete uuid "$uuid" >/dev/null 2>&1 || echo "Warning: failed to delete connection uuid $uuid"
+  done <<< "$CONNS"
+fi
+
+# Create SOC Network (Internet) on eth1 (primary)
+echo "Creating connection 'SOC Network (Internet)' on eth1..."
+nmcli connection add type ethernet ifname eth1 con-name "SOC Network (Internet)" connection.autoconnect yes ipv4.method auto >/dev/null
+# prefer this connection for default route by setting a lower route metric
+nmcli connection modify "SOC Network (Internet)" ipv4.route-metric 100 ipv4.never-default no >/dev/null
+
+# Create Silverpine User Net on eth0 (internal, non-default)
+echo "Creating connection 'Silverpine User Net' on eth0..."
+nmcli connection add type ethernet ifname eth0 con-name "Silverpine User Net" connection.autoconnect yes ipv4.method auto >/dev/null
+# prevent this connection from installing a default gateway while keeping its DNS
+nmcli connection modify "Silverpine User Net" ipv4.never-default yes ipv4.route-metric 200 >/dev/null
+
+# Activate connections (best effort)
+echo "Bringing up connections..."
+nmcli connection up "SOC Network (Internet)" >/dev/null 2>&1 || echo "Notice: could not bring up 'SOC Network (Internet)' immediately"
+nmcli connection up "Silverpine User Net" >/dev/null 2>&1 || echo "Notice: could not bring up 'Silverpine User Net' immediately"
+
+# Prompt for hostname
+printf "Enter new hostname: "
+IFS= read -r NEW_HOSTNAME
+
+# Validate hostname: letters, digits, hyphen; must not start or end with hyphen; max 63 chars
+if ! printf "%s" "$NEW_HOSTNAME" | grep -Eq '^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?$'; then
+  echo "Invalid hostname. Use letters, digits, and hyphen. Must not start or end with hyphen. Max 63 characters."
+  exit 1
+fi
+
+OLD_HOST="$(hostname)"
+
+# Apply hostname
+hostnamectl set-hostname "$NEW_HOSTNAME"
+
+# Backup /etc/hosts
+BACKUP="/etc/hosts.bak.$(date +%Y%m%d%H%M%S)"
+cp /etc/hosts "$BACKUP"
+echo "Backed up /etc/hosts to $BACKUP"
+
+# Replace whole-word occurrences of the old hostname with the new hostname
+# Use GNU sed word boundaries \< and \>
+if grep -qw -- "$OLD_HOST" /etc/hosts 2>/dev/null; then
+  sed -i "s/\\<$OLD_HOST\\>/$NEW_HOSTNAME/g" /etc/hosts || echo "Warning: failed to update some occurrences in /etc/hosts"
+fi
+
+# Ensure there is a 127.0.1.1 entry for the hostname (Debian style)
+if ! grep -E -q "^[[:space:]]*127\.0\.1\.1[[:space:]]+$NEW_HOSTNAME([[:space:]]|$)" /etc/hosts; then
+  printf "127.0.1.1 %s\n" "$NEW_HOSTNAME" >> /etc/hosts
+fi
+
+echo "Hostname changed from '$OLD_HOST' to '$NEW_HOSTNAME'. /etc/hosts updated."
+
+echo "Syncing NetworkManager and system state..."
+# reload NetworkManager profiles so changes take effect cleanly
+nmcli connection reload >/dev/null 2>&1 || true
+
+echo "Rebooting system now."
+sleep 2
+systemctl reboot
