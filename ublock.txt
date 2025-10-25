@@ -29,6 +29,7 @@ youtube-nocookie.com,youtube.com##.ytp-pause-overlay, .show-video-thumbnail-butt
 /endscreen.js$script,xhr,important,domain=youtube.com
 youtube-nocookie.com,youtube.com##.ytp-pause-overlay, .show-video-thumbnail-button
 ~youtube-nocookie.com,~youtube.com##iframe ~ #topvbar > #rvid
+youtube.com##a.ytp-suggestion-set
 
 ! pop-up ads
 youtube.com##ytd-popup-container > tp-yt-paper-dialog > ytd-mealbar-promo-renderer, ytd-popup-container > tp-yt-paper-dialog > yt-mealbar-promo-renderer:has-text(/Claim Offer|Join now|Not Now|No thanks|YouTube TV|live TV|Live TV|movies|sports|Try it free|unlimited DVR|watch NFL/)
