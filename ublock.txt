@@ -8,8 +8,6 @@
 ! remove unneeded buttons
 youtube.com###voice-search-button
 youtube.com###footer
-youtube.com##ytd-guide-section-renderer.ytd-guide-renderer.style-scope:nth-of-type(3)
-youtube.com##ytd-guide-section-renderer.ytd-guide-renderer.style-scope:nth-of-type(4)
 youtube.com##.ytmPaidContentOverlayHost
 youtube.com##ytd-video-description-infocards-section-renderer
 youtube.com##.ytInlinePlayerControlsTopLeftControls
