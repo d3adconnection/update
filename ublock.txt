@@ -99,6 +99,7 @@ reddit.com##.author-tooltip
 reddit.com##.trophy-area.sidecontentbox
 reddit.com##.get-crisis-support
 reddit.com##.giftgold
+reddit.com##.listingsignupbar.infobar
 
 ! RES
 reddit.com###gildUser
